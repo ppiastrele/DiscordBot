@@ -35,7 +35,9 @@ const xingamentosFaitas = [
   "Impossivel ser mais noob que o Faitas!",
 ];
 
-const helpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen\n• !settings\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\ttrashTalk: [0,1]\n\t\tnoobTalk: [0,1]";
+const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen\n• !settings\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\ttrashTalk: [0,1]\n\t\tnoobTalk: [0,1]";
+
+const helpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen";
 
 //----------------------------------------------------------------------------------
 //  Helper functions
@@ -134,7 +136,7 @@ client.on("messageCreate", async (message) => {
       const adminMessage = messageContent.split("-");
 
       if(messageContent === "!help"){
-        sendChannelMessage(message, helpText, false);
+        sendChannelMessage(message, adminHelpText, false);
       }
 
       if(messageContent === "!settings"){
@@ -144,6 +146,10 @@ client.on("messageCreate", async (message) => {
       if(adminMessage[0] === "!updateSettings" && Number(adminMessage[2]) != NaN){
         const response = updateSettings(adminMessage[1], Number(adminMessage[2]));
         masterAdmin.send(`Setting changed - ${adminMessage[1]} from ${response.oldValue} to ${response.newValue}`);
+      }
+    }else{
+      if(messageContent === "!help"){
+        sendChannelMessage(message, helpText, false);
       }
     }
   }
