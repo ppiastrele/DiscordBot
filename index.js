@@ -35,7 +35,7 @@ const xingamentosFaitas = [
   "Impossivel ser mais noob que o Faitas!",
 ];
 
-const helpText = "Vingador - Help Prompt\n\n• !smile\n\n• !xingarFaitas\n\n• !xingarAyen\n\n• !settings\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\ttrashTalk: [0,1]\n\t\tnoobTalk: [0,1]";
+const helpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen\n• !settings\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\ttrashTalk: [0,1]\n\t\tnoobTalk: [0,1]";
 
 //----------------------------------------------------------------------------------
 //  Helper functions
