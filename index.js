@@ -53,9 +53,13 @@ function demotivationalMessage(){
   return demotivationalQuotes[randomNum];
 }
 
-async function sendChannelMessage(channelID, text){
-  await client.channels.fetch(channelID)
+async function sendChannelMessage(message, text, deleteOP = false){
+  await client.channels.fetch(message.channelId)
     .then(channel => channel.send(text))
+    .then(() => {
+      if(deleteOP === true)
+        message.delete();
+    })
     .catch(console.error);
 }
 
@@ -108,24 +112,21 @@ client.on("messageCreate", async (message) => {
         }
 
         if(message?.author.username === "Jairo"){
-          sendChannelMessage(message.channelId, "eu só respondo o noob do faitas...");
+          sendChannelMessage(message, "eu só respondo o noob do faitas...", false);
         }
       }
 
       if(messageContent === "!xingarFaitas"){
-        sendChannelMessage(message.channelId, xingarFaitas());
-        message.delete();
+        sendChannelMessage(message, xingarFaitas(), true);
       }
       
       if(messageContent === "!xingarAyen"){
-        sendChannelMessage(message.channelId, "Faitas noob xD");
-        message.delete();
+        sendChannelMessage(message, "Faitas noob xD", true);
       }
     }
 
     if(messageContent === "!smile"){
-      sendChannelMessage(message.channelId, demotivationalMessage());
-      message.delete();
+      sendChannelMessage(message, demotivationalMessage(), true);
     }
     
     //admin helper
@@ -133,11 +134,11 @@ client.on("messageCreate", async (message) => {
       const adminMessage = messageContent.split("-");
 
       if(messageContent === "!help"){
-        sendChannelMessage(message.channelId, helpText);
+        sendChannelMessage(message, helpText, false);
       }
 
       if(messageContent === "!settings"){
-        sendChannelMessage(message.channelId, getSettings());
+        sendChannelMessage(message, getSettings(), false);
       }
       
       if(adminMessage[0] === "!updateSettings" && Number(adminMessage[2]) != NaN){
