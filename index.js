@@ -2,11 +2,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { Client, GatewayIntentBits } from 'discord.js';
+import { demotivationalQuotes } from './helper/demotivationalQuotes.js';
 
 const client = new Client({
   intents:[
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.DirectMessages,
@@ -14,31 +16,68 @@ const client = new Client({
   ],
 });
 
-const config = {
-  loginAlert: true,
-  logoutAlert: true,
-  moveChannelAlert: false,
+let masterAdmin;
+let settings = {
+  loginAlert: 1,
+  logoutAlert: 1,
+  moveChannelAlert: 0,
+  trashTalk: 1,
+  noobTalk: 0,
 }
 const allowedServers = {
   "521352924513828885": {name: "Primatas"},
   "533264087917002752": {name: "xNeC"},
 }
-let masterAdmin;
+const xingamentosFaitas = [
+  "Faitas, seu noob",
+  "Faitas, noob lazarento",
+  "Muito noob esse Faitas",
+  "Impossivel ser mais noob que o Faitas!",
+];
+
+const helpText = "Vingador - Help Prompt\n\n• !settings\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\ttrashTalk: [0,1]\n\t\tnoobTalk: [0,1]";
 
 //----------------------------------------------------------------------------------
 //  Helper functions
 //----------------------------------------------------------------------------------
 
 function xingarFaitas(){
-  let randomNum = Math.floor(Math.random()*4);
-  const xingamentosFaitas = [
-    "Faitas, seu noob",
-    "Faitas, noob lazarento",
-    "Muito noob esse Faitas",
-    "Impossivel ser mais noob que o Faitas!",
-  ];
+  let randomNum = Math.floor(Math.random()*xingamentosFaitas.length);
 
   return xingamentosFaitas[randomNum];
+}
+
+function demotivationalMessage(){
+  let randomNum = Math.floor(Math.random()*demotivationalQuotes.length);
+
+  return demotivationalQuotes[randomNum];
+}
+
+async function sendChannelMessage(channelID, text){
+  await client.channels.fetch(channelID)
+    .then(channel => channel.send(text))
+    .catch(console.error);
+}
+
+function updateSettings(setting, newValue){
+  const oldValue = settings[setting];
+  settings[setting] = newValue;
+
+  return {
+    oldValue: oldValue,
+    newValue: newValue
+  };
+}
+
+function getSettings(){
+  let response = "";
+  
+  for (const key in settings) {
+    if(response != "") response += "\n";
+    response += `${key} -> ${settings[key]}`; 
+  }
+
+  return response;
 }
 
 //----------------------------------------------------------------------------------
@@ -57,29 +96,54 @@ client.on('ready', async () => {
 client.on("messageCreate", async (message) => {
 
   if(!message?.author.bot){
+
+    const messageContent = message?.content || "";
     
-    if(message?.author.username === "Faitas" || message?.author.username === "B Frozen"){
-      message.reply('noob')
-        .then(() => console.log(`${message.author.username} said "${message.content}"`))
-        .catch(console.error);
+    //trash talk
+    if(settings.trashTalk){
+      if(settings.noobTalk){
+        if(message?.author.username === "Faitas" || message?.author.username === "B Frozen"){
+          message.reply('noob')
+            .catch(console.error);
+        }
+
+        if(message?.author.username === "Jairo"){
+          sendChannelMessage(message.channelId, "eu só respondo o noob do faitas...");
+        }
+      }
+
+      if(messageContent === "!xingarFaitas"){
+        sendChannelMessage(message.channelId, xingarFaitas());
+        message.delete();
+      }
+      
+      if(messageContent === "!xingarAyen"){
+        sendChannelMessage(message.channelId, "Faitas noob xD");
+        message.delete();
+      }
     }
 
-    if(message?.author.username === "Jairo"){
-      await client.channels.fetch(message.channelId)
-        .then(channel => channel.send("eu só respondo o noob do faitas..."))
-        .catch(console.error);
-    }
-
-    if(message?.content === "!xingarFaitas"){
-      await client.channels.fetch(message.channelId)
-        .then(channel => channel.send(xingarFaitas()))
-        .catch(console.error);
+    if(messageContent === "!smile"){
+      sendChannelMessage(message.channelId, demotivationalMessage());
+      message.delete();
     }
     
-    if(message?.content === "!xingarAyen"){
-      await client.channels.fetch(message.channelId)
-        .then(channel => channel.send("Faitas noob xD"))
-        .catch(console.error);
+    //admin helper
+    if(message?.author.id === masterAdmin.id){
+      const adminMessage = messageContent.split("-");
+
+      if(messageContent === "!help"){
+        sendChannelMessage(message.channelId, helpText);
+      }
+
+      if(messageContent === "!settings"){
+        sendChannelMessage(message.channelId, getSettings());
+      }
+      
+      if(adminMessage[0] === "!updateSettings" && Number(adminMessage[2]) != NaN){
+        const response = updateSettings(adminMessage[1], Number(adminMessage[2]));
+        masterAdmin.send(`Setting changed - ${adminMessage[1]} from ${response.oldValue} to ${response.newValue}`);
+      }
     }
   }
 });
@@ -99,7 +163,7 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
     let oldChannel,
         newChannel,
         time = date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}),
-        timeSerrverUser = `${time} ${serverName} - ${member.username}`,
+        timeServerUser = `${time} ${serverName} - ${member.username}`,
         message,
         userWasHere = false,
         userIsHere = false;
@@ -113,12 +177,12 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
       userIsHere = true;
     }
 
-    if(config.moveChannelAlert && userWasHere && userIsHere){
-      message = `${timeSerrverUser} moved from ${oldChannel?.name} to ${newChannel?.name}`;
-    }else if(config.loginAlert && userIsHere && !userWasHere){
-      message = `${timeSerrverUser} logged in to ${newChannel?.name}`;
-    }else if(config.logoutAlert && !userIsHere && userWasHere){
-      message = `${timeSerrverUser} logged out`;
+    if(settings.moveChannelAlert && userWasHere && userIsHere){
+      message = `${timeServerUser} moved from ${oldChannel?.name} to ${newChannel?.name}`;
+    }else if(settings.loginAlert && userIsHere && !userWasHere){
+      message = `${timeServerUser} logged in to ${newChannel?.name}`;
+    }else if(settings.logoutAlert && !userIsHere && userWasHere){
+      message = `${timeServerUser} logged out`;
     }
     
     if(message){
