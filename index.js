@@ -24,18 +24,25 @@ let settings = {
   trashTalk: 1,
   noobTalk: 0,
 }
-const allowedServers = {
-  "521352924513828885": {name: "Primatas"},
-  "533264087917002752": {name: "xNeC"},
-}
+const cronjobInterval = 60 * 60 * 1000; //in milliseconds
 const xingamentosFaitas = [
   "Faitas, seu noob",
   "Faitas, noob lazarento",
   "Muito noob esse Faitas",
   "Impossivel ser mais noob que o Faitas!",
 ];
+const servers = {
+  "521352924513828885": {
+    name: "Primatas",
+    demotivationalCounter: 0
+  },
+  "533264087917002752": {
+    name: "xNeC",
+    demotivationalCounter: 0
+  }
+}
 
-const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen\n• !settings\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\ttrashTalk: [0,1]\n\t\tnoobTalk: [0,1]";
+const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen\n• !settings\n• !servers\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\ttrashTalk: [0,1]\n\t\tnoobTalk: [0,1]";
 
 const helpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen";
 
@@ -86,6 +93,17 @@ function getSettings(){
   return response;
 }
 
+function getServers(){
+  let response = "";
+  
+  for (const key in servers) {
+    if(response != "") response += "\n";
+    response += `${key} -> ${servers[key].name} | ${servers[key].demotivationalCounter}`; 
+  }
+
+  return response;
+}
+
 //----------------------------------------------------------------------------------
 //  Client ready
 //----------------------------------------------------------------------------------
@@ -104,6 +122,7 @@ client.on("messageCreate", async (message) => {
   if(!message?.author.bot){
 
     const messageContent = message?.content || "";
+    const server = servers[message.guildId];
     
     //trash talk
     if(settings.trashTalk){
@@ -142,6 +161,10 @@ client.on("messageCreate", async (message) => {
       if(messageContent === "!settings"){
         sendChannelMessage(message, getSettings(), false);
       }
+
+      if(messageContent === "!servers"){
+        sendChannelMessage(message, getServers(), false);
+      }
       
       if(adminMessage[0] === "!updateSettings" && Number(adminMessage[2]) != NaN){
         const response = updateSettings(adminMessage[1], Number(adminMessage[2]));
@@ -150,6 +173,18 @@ client.on("messageCreate", async (message) => {
     }else{
       if(messageContent === "!help"){
         sendChannelMessage(message, helpText, false);
+      }
+    }
+
+    //random demotivational message sender
+    //name property is used to ensure server is one of the allowed ones
+    if(server?.name){
+      if(Math.random() > 0.85 || server.demotivationalCounter >= 6){
+        console.log("Demotivational message sent (message chance)");
+        sendChannelMessage(message, demotivationalMessage(), false);
+        server.demotivationalCounter = 0;
+      }else{
+        server.demotivationalCounter++;
       }
     }
   }
@@ -161,9 +196,9 @@ client.on("messageCreate", async (message) => {
 
 client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
 
-  if(allowedServers[oldMemberState?.guild.id]){
+  if(servers[oldMemberState?.guild.id]){
     
-    const serverName = allowedServers[oldMemberState?.guild.id].name,
+    const serverName = servers[oldMemberState?.guild.id].name,
           member = await client.users.fetch(oldMemberState?.id),
           date = new Date();
 
@@ -199,6 +234,20 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
 
   }
 });
+
+//----------------------------------------------------------------------------------
+//  Cron job
+//----------------------------------------------------------------------------------
+
+setInterval(async function() {
+  if(Math.random() > 0.9){
+    console.log("Demotivational message sent (cronjob)");
+    await client.channels.fetch("533264087917002756")
+      .then(channel => channel.send(demotivationalMessage()))
+      .catch(console.error);
+  }
+}, cronjobInterval);
+
 
 //----------------------------------------------------------------------------------
 //  Client login
