@@ -24,6 +24,7 @@ let settings = {
   trashTalk: 1,
   noobTalk: 0,
   smileSender: 1,
+  randomSmileChange: 5,
 }
 const cronjobInterval = 60 * 60 * 1000; //in milliseconds
 const xingamentosFaitas = [
@@ -43,7 +44,7 @@ const servers = {
   }
 }
 
-const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen\n• !settings\n• !servers\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\ttrashTalk: [0,1]\n\t\tnoobTalk: [0,1]\n\t\tsmileSender: [0,1]";
+const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen\n• !settings\n• !servers\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\ttrashTalk: [0,1]\n\t\tnoobTalk: [0,1]\n\t\tsmileSender: [0,1]\n\t\trandomSmileChange: [0,1,2...99,100]";
 
 const helpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen";
 
@@ -149,6 +150,9 @@ client.on("messageCreate", async (message) => {
 
     if(messageContent === "!smile"){
       sendChannelMessage(message, demotivationalMessage(), true);
+      if(server?.name){
+        server.demotivationalCounter = 0;
+      }
     }
     
     //admin helper
@@ -168,7 +172,13 @@ client.on("messageCreate", async (message) => {
       }
       
       if(adminMessage[0] === "!updateSettings" && Number(adminMessage[2]) != NaN){
-        const response = updateSettings(adminMessage[1], Number(adminMessage[2]));
+        const newValue = Number(adminMessage[2]);
+        if(adminMessage[1] === "randomSmileChange"){
+          if(newValue < 0 || newValue > 100){
+            return;
+          }
+        }
+        const response = updateSettings(adminMessage[1], newValue);
         masterAdmin.send(`Setting changed - ${adminMessage[1]} from ${response.oldValue} to ${response.newValue}`);
       }
     }else{
@@ -243,14 +253,19 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
 //----------------------------------------------------------------------------------
 
 setInterval(async function() {
-  if(settings.smileSender && Math.random() > 0.9){
-    console.log("Demotivational message sent (cronjob)");
-    await client.channels.fetch("533264087917002756")
-      .then(channel => channel.send(demotivationalMessage()))
-      .catch(console.error);
-  }
-}, cronjobInterval);
 
+  //send demotivationalMessage with a change
+  if(settings.smileSender && (Math.random()*100) < settings.randomSmileChange){
+    let randomTime = Math.floor(Math.random()*60) * 60 * 1000; //between 0 and 59 minutes
+    setInterval( async () => {
+      console.log("Demotivational message sent (cronjob)");
+      await client.channels.fetch("533264087917002756")
+        .then(channel => channel.send(demotivationalMessage()))
+        .catch(console.error);
+    }, randomTime);
+  }
+
+}, cronjobInterval);
 
 //----------------------------------------------------------------------------------
 //  Client login
