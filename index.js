@@ -157,6 +157,20 @@ client.on("messageCreate", async (message) => {
       if(server?.name){
         server.demotivationalCounter = 0;
       }
+    }else{
+      //random demotivational message sender
+      if(settings.smileSender ){
+        //name property is used to ensure server is one of the allowed ones
+        if(server?.name){
+          if(Math.random() > 0.85 || server.demotivationalCounter >= 6){
+            console.log("Demotivational message sent (message chance)");
+            sendChannelMessage(message, demotivationalMessage(), false);
+            server.demotivationalCounter = 0;
+          }else{
+            server.demotivationalCounter++;
+          }
+        }
+      }
     }
     
     //admin helper
@@ -184,20 +198,6 @@ client.on("messageCreate", async (message) => {
         }
         const response = updateSettings(adminMessage[1], newValue);
         masterAdmin.send(`Setting changed - ${adminMessage[1]} from ${response.oldValue} to ${response.newValue}`);
-      }
-    }
-
-    //random demotivational message sender
-    if(settings.smileSender){
-      //name property is used to ensure server is one of the allowed ones
-      if(server?.name){
-        if(Math.random() > 0.85 || server.demotivationalCounter >= 6){
-          console.log("Demotivational message sent (message chance)");
-          sendChannelMessage(message, demotivationalMessage(), false);
-          server.demotivationalCounter = 0;
-        }else{
-          server.demotivationalCounter++;
-        }
       }
     }
   }
