@@ -147,6 +147,10 @@ client.on("messageCreate", async (message) => {
         sendChannelMessage(message, "Faitas noob xD", true);
       }
     }
+    
+    if(messageContent === "!help"){
+      sendChannelMessage(message, helpText, false);
+    }
 
     if(messageContent === "!smile"){
       sendChannelMessage(message, demotivationalMessage(), true);
@@ -159,7 +163,7 @@ client.on("messageCreate", async (message) => {
     if(message?.author.id === masterAdmin.id){
       const adminMessage = messageContent.split("-");
 
-      if(messageContent === "!help"){
+      if(messageContent === "!adminHelp"){
         sendChannelMessage(message, adminHelpText, false);
       }
 
@@ -180,10 +184,6 @@ client.on("messageCreate", async (message) => {
         }
         const response = updateSettings(adminMessage[1], newValue);
         masterAdmin.send(`Setting changed - ${adminMessage[1]} from ${response.oldValue} to ${response.newValue}`);
-      }
-    }else{
-      if(messageContent === "!help"){
-        sendChannelMessage(message, helpText, false);
       }
     }
 
