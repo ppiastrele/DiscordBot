@@ -256,13 +256,9 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
 setInterval(async function() {
 
   //send demotivationalMessage with a change
-  let randonSmileNumber = Math.random()*100;
-  if(settings.smileSender && randonSmileNumber < settings.randomSmileChance){
+  if(settings.smileSender && (Math.random()*100) < settings.randomSmileChance){
     let randomTime = Math.floor(Math.random()*60) * 60 * 1000; //between 0 and 59 minutes
-
-    console.log(`Cronjob passed: random ${randonSmileNumber} | chance ${settings.randomSmileChance} | time ${randomTime}`)
-
-    setInterval( async () => {
+    setTimeout( async () => {
       console.log("Demotivational message sent (cronjob)");
       await client.channels.fetch("533264087917002756")
         .then(channel => channel.send(demotivationalMessage()))
