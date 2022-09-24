@@ -24,7 +24,7 @@ let settings = {
   trashTalk: 1,
   noobTalk: 0,
   smileSender: 1,
-  randomSmileChange: 5,
+  randomSmileChance: 5,
 }
 const cronjobInterval = 60 * 60 * 1000; //in milliseconds
 const xingamentosFaitas = [
@@ -44,7 +44,7 @@ const servers = {
   }
 }
 
-const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen\n• !settings\n• !servers\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\ttrashTalk: [0,1]\n\t\tnoobTalk: [0,1]\n\t\tsmileSender: [0,1]\n\t\trandomSmileChange: [0,1,2...99,100]";
+const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen\n• !settings\n• !servers\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\ttrashTalk: [0,1]\n\t\tnoobTalk: [0,1]\n\t\tsmileSender: [0,1]\n\t\trandomSmileChance: [0,1,2...99,100]";
 
 const helpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen";
 
@@ -154,7 +154,7 @@ client.on("messageCreate", async (message) => {
 
     if(messageContent === "!smile"){
       sendChannelMessage(message, demotivationalMessage(), true);
-      console.log(`${message?.author.username} called !smile`)
+      console.log(`Demotivational message sent by ${message?.author.username}`);
       if(server?.name){
         server.demotivationalCounter = 0;
       }
@@ -192,7 +192,7 @@ client.on("messageCreate", async (message) => {
       
       if(adminMessage[0] === "!updateSettings" && Number(adminMessage[2]) != NaN){
         const newValue = Number(adminMessage[2]);
-        if(adminMessage[1] === "randomSmileChange"){
+        if(adminMessage[1] === "randomSmileChance"){
           if(newValue < 0 || newValue > 100){
             return;
           }
@@ -256,8 +256,12 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
 setInterval(async function() {
 
   //send demotivationalMessage with a change
-  if(settings.smileSender && (Math.random()*100) < settings.randomSmileChange){
+  let randonSmileNumber = Math.random()*100;
+  if(settings.smileSender && randonSmileNumber < settings.randomSmileChance){
     let randomTime = Math.floor(Math.random()*60) * 60 * 1000; //between 0 and 59 minutes
+
+    console.log(`Cronjob passed: random ${randonSmileNumber} | chance ${settings.randomSmileChance} | time ${randomTime}`)
+
     setInterval( async () => {
       console.log("Demotivational message sent (cronjob)");
       await client.channels.fetch("533264087917002756")
