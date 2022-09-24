@@ -154,6 +154,7 @@ client.on("messageCreate", async (message) => {
 
     if(messageContent === "!smile"){
       sendChannelMessage(message, demotivationalMessage(), true);
+      console.log(`${message?.author.username} called !smile`)
       if(server?.name){
         server.demotivationalCounter = 0;
       }
