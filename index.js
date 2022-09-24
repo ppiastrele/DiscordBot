@@ -241,7 +241,7 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
       message = `${timeServerUser} logged out`;
     }
     
-    if(message){
+    if(message && member !== masterAdmin){
       masterAdmin.send(message);
       console.log(message);
     }
