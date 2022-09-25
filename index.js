@@ -126,6 +126,8 @@ function upTime(){
 client.on('ready', async () => {
   console.log(`Bot started at ${botStartDate.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`);
   masterAdmin = await client.users.fetch(process.env.ADMIN_ID);
+
+  console.log("time test",botStartDate.toTimeString());
 });
 
 //----------------------------------------------------------------------------------
@@ -248,7 +250,7 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
       message = `${timeServerUser} logged out`;
     }
     
-    if(message && member !== masterAdmin){
+    if(message && member === masterAdmin){
       masterAdmin.send(message);
       console.log(message);
     }
