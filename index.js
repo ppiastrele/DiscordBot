@@ -156,7 +156,7 @@ client.on("messageCreate", async (message) => {
     if(messageContent === "!upTime"){
       sendChannelMessage(message, upTime(), false);
       if(settings.debug){
-        console.log(`Debug uptime: ${botStartDate.toLocaleDateString()} | uptime locale ${botStartDate.toLocaleDateString(botTimeFormat, {timeZone: botTimeZone})}`)
+        console.log(`Debug uptime: ${botStartDate.toLocaleDateString()} ${botStartDate.toLocaleTimeString()} | uptime locale ${botStartDate.toLocaleDateString(botTimeFormat, {timeZone: botTimeZone})} ${botStartDate.toLocaleTimeString(botTimeFormat, {timeZone: botTimeZone})}`)
       }
     }
 
