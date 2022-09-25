@@ -23,7 +23,7 @@ let settings = {
   logoutAlert: 1,
   moveChannelAlert: 0,
   noobTalk: 0,
-  smileSender: 1,
+  randomSmileSender: 1,
   randomSmileChance: 5,
 }
 let cronJobCount = 0;
@@ -42,7 +42,7 @@ const servers = {
   }
 }
 
-const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !upTime\n• !settings\n• !servers\n• !cronCount\n• !updateSettings-[setting]-[value]\n\t\tdebug: [0,1]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\tnoobTalk: [0,1]\n\t\tsmileSender: [0,1]\n\t\trandomSmileChance: [0,1,2...99,100]";
+const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !upTime\n• !settings\n• !servers\n• !cronCount\n• !updateSettings-[setting]-[value]\n\t\tdebug: [0,1]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\tnoobTalk: [0,1]\n\t\trandomSmileSender: [0,1]\n\t\trandomSmileChance: [0,1,2...99,100]";
 
 const helpText = "Vingador - Help Prompt\n\n• !smile\n• !upTime";
 
@@ -169,7 +169,7 @@ client.on("messageCreate", async (message) => {
       }
     }else{
       //random demotivational message sender
-      if(settings.smileSender ){
+      if(settings.randomSmileSender ){
         //name property is used to ensure server is one of the allowed ones
         if(server?.name){
           if(Math.random() > 0.85 || server.demotivationalCounter >= 6){
@@ -274,7 +274,7 @@ setInterval(async function() {
   cronJobCount++;
 
   //send demotivationalMessage with a change
-  if(settings.smileSender && (Math.random()*100) < settings.randomSmileChance){
+  if(settings.randomSmileSender && (Math.random()*100) < settings.randomSmileChance){
     let randomTime = Math.floor(Math.random()*60) * 60 * 1000; //between 0 and 59 minutes
     setTimeout( async () => {
       console.log("Demotivational message sent (cronjob)");
