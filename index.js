@@ -26,7 +26,9 @@ let settings = {
   randomSmileChance: 5,
 }
 let cronJobCount = 0;
-const cronjobInterval = 60 * 60 * 1000; //in milliseconds
+const cronjobInterval = 60 * 60 * 1000;  //in milliseconds
+const botTimeZone = "America/Sao_Paulo";
+const botTimeFormat = "pt-BR";
 const botStartDate = new Date();
 const servers = {
   "521352924513828885": {
@@ -114,7 +116,7 @@ function upTime(){
   const upTimeNow = new Date();
   const timeDiffMilliseconds = upTimeNow.getTime() - botStartDate.getTime();
 
-  return `Since: ${botStartDate.toLocaleDateString('pt-BR')} | ${botStartDate.toLocaleTimeString('pt-BR')}\nUp time: ${msToDays(timeDiffMilliseconds)}`;
+  return `Since: ${botStartDate.toLocaleDateString('pt-BR', botTimeZone)} | ${botStartDate.toLocaleTimeString(botTimeFormat, botTimeZone)}\nUp time: ${msToDays(timeDiffMilliseconds)}`;
 }
 
 //----------------------------------------------------------------------------------
@@ -220,7 +222,7 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
     const serverName = servers[oldMemberState?.guild.id].name,
           member = await client.users.fetch(oldMemberState?.id),
           voiceDateObject = new Date(),
-          voiceTime = voiceDateObject.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+          voiceTime = voiceDateObject.toLocaleTimeString(botTimeFormat, {timeZone: botTimeZone, hour: '2-digit', minute: '2-digit'});
 
     let oldChannel,
         newChannel,
