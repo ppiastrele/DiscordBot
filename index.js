@@ -117,7 +117,7 @@ function upTime(){
   const upTimeNow = new Date();
   const timeDiffMilliseconds = upTimeNow.getTime() - botStartDate.getTime();
 
-  return `Since: ${botStartDate.toLocaleDateString('pt-BR', {timeZone: botTimeZone})} | ${botStartDate.toLocaleTimeString(botTimeFormat, {timeZone: botTimeZone})}\nUp time: ${msToDays(timeDiffMilliseconds)}`;
+  return `Since: ${botStartDate.toLocaleDateString(botTimeFormat, {timeZone: botTimeZone})} | ${botStartDate.toLocaleTimeString(botTimeFormat, {timeZone: botTimeZone})}\nUp time: ${msToDays(timeDiffMilliseconds)}`;
 }
 
 //----------------------------------------------------------------------------------
@@ -125,7 +125,7 @@ function upTime(){
 //----------------------------------------------------------------------------------
 
 client.on('ready', async () => {
-  console.log(`Bot started at ${botStartDate.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`);
+  console.log(`Bot started at ${botStartDate.toLocaleTimeString(botTimeFormat, {hour: '2-digit', minute: '2-digit'})}`);
   masterAdmin = await client.users.fetch(process.env.ADMIN_ID);
 });
 
@@ -155,6 +155,9 @@ client.on("messageCreate", async (message) => {
 
     if(messageContent === "!upTime"){
       sendChannelMessage(message, upTime(), false);
+      if(settings.debug){
+        console.log(`Debug uptime: ${botStartDate.toLocaleDateString()} | uptime locale ${botStartDate.toLocaleDateString(botTimeFormat, {timeZone: botTimeZone})}`)
+      }
     }
 
     if(messageContent === "!smile"){
