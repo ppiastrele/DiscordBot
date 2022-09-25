@@ -266,7 +266,7 @@ setInterval(async function() {
     let randomTime = Math.floor(Math.random()*60) * 60 * 1000; //between 0 and 59 minutes
     setTimeout( async () => {
       console.log("Demotivational message sent (cronjob)");
-      await client.channels.fetch("786143893158756365")
+      await client.channels.fetch("533264087917002756")
         .then(channel => channel.send(demotivationalMessage()))
         .catch(console.error);
     }, randomTime);
