@@ -21,18 +21,13 @@ let settings = {
   loginAlert: 1,
   logoutAlert: 1,
   moveChannelAlert: 0,
-  trashTalk: 1,
   noobTalk: 0,
   smileSender: 1,
   randomSmileChance: 5,
 }
+let cronJobCount = 0;
 const cronjobInterval = 60 * 60 * 1000; //in milliseconds
-const xingamentosFaitas = [
-  "Faitas, seu noob",
-  "Faitas, noob lazarento",
-  "Muito noob esse Faitas",
-  "Impossivel ser mais noob que o Faitas!",
-];
+const botStartDate = new Date();
 const servers = {
   "521352924513828885": {
     name: "Primatas",
@@ -44,19 +39,28 @@ const servers = {
   }
 }
 
-const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen\n• !settings\n• !servers\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\ttrashTalk: [0,1]\n\t\tnoobTalk: [0,1]\n\t\tsmileSender: [0,1]\n\t\trandomSmileChance: [0,1,2...99,100]";
+const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !upTime\n• !settings\n• !servers\n• !cronCount\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\tnoobTalk: [0,1]\n\t\tsmileSender: [0,1]\n\t\trandomSmileChance: [0,1,2...99,100]";
 
-const helpText = "Vingador - Help Prompt\n\n• !smile\n• !xingarFaitas\n• !xingarAyen";
+const helpText = "Vingador - Help Prompt\n\n• !smile\n• !upTime";
 
 //----------------------------------------------------------------------------------
 //  Helper functions
 //----------------------------------------------------------------------------------
 
-function xingarFaitas(){
-  let randomNum = Math.floor(Math.random()*xingamentosFaitas.length);
-
-  return xingamentosFaitas[randomNum];
+function msToDays (ms) {
+  const days = Math.floor(ms / (24*60*60*1000));
+  const daysms = ms % (24*60*60*1000);
+  const hours = Math.floor(daysms / (60*60*1000));
+  const hoursms = ms % (60*60*1000);
+  const minutes = Math.floor(hoursms / (60*1000));
+  const minutesms = ms % (60*1000);
+  const sec = Math.floor(minutesms / 1000);
+  return `${days} days ${hours} hours ${minutes} minutes ${sec} seconds`;
 }
+
+//----------------------------------------------------------------------------------
+//  Bot functions
+//----------------------------------------------------------------------------------
 
 function demotivationalMessage(){
   let randomNum = Math.floor(Math.random()*demotivationalQuotes.length);
@@ -106,12 +110,19 @@ function getServers(){
   return response;
 }
 
+function upTime(){
+  const upTimeNow = new Date();
+  const timeDiffMilliseconds = upTimeNow.getTime() - botStartDate.getTime();
+
+  return `Since: ${botStartDate.toLocaleDateString('pt-BR')} | ${botStartDate.toLocaleTimeString('pt-BR')}\nUp time: ${msToDays(timeDiffMilliseconds)}`;
+}
+
 //----------------------------------------------------------------------------------
 //  Client ready
 //----------------------------------------------------------------------------------
 
 client.on('ready', async () => {
-  console.log(`Logged in...`);
+  console.log(`Bot started at ${botStartDate.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`);
   masterAdmin = await client.users.fetch(process.env.ADMIN_ID);
 });
 
@@ -126,30 +137,20 @@ client.on("messageCreate", async (message) => {
     const messageContent = message?.content || "";
     const server = servers[message.guildId];
     
-    //trash talk
-    if(settings.trashTalk){
-      if(settings.noobTalk){
-        if(message?.author.username === "Faitas" || message?.author.username === "B Frozen"){
-          message.reply('noob')
-            .catch(console.error);
-        }
-
-        if(message?.author.username === "Jairo"){
-          sendChannelMessage(message, "eu só respondo o noob do faitas...", false);
-        }
-      }
-
-      if(messageContent === "!xingarFaitas"){
-        sendChannelMessage(message, xingarFaitas(), true);
-      }
-      
-      if(messageContent === "!xingarAyen"){
-        sendChannelMessage(message, "Faitas noob xD", true);
+    //noobs talk
+    if(settings.noobTalk){
+      if(message?.author.username === "Faitas" || message?.author.username === "B Frozen"){
+        message.reply('noob')
+          .catch(console.error);
       }
     }
     
     if(messageContent === "!help"){
       sendChannelMessage(message, helpText, false);
+    }
+
+    if(messageContent === "!upTime"){
+      sendChannelMessage(message, upTime(), false);
     }
 
     if(messageContent === "!smile"){
@@ -189,6 +190,10 @@ client.on("messageCreate", async (message) => {
       if(messageContent === "!servers"){
         sendChannelMessage(message, getServers(), false);
       }
+
+      if(messageContent === "!cronCount"){
+        sendChannelMessage(message, `${cronJobCount}`, false);
+      }
       
       if(adminMessage[0] === "!updateSettings" && Number(adminMessage[2]) != NaN){
         const newValue = Number(adminMessage[2]);
@@ -214,12 +219,12 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
     
     const serverName = servers[oldMemberState?.guild.id].name,
           member = await client.users.fetch(oldMemberState?.id),
-          date = new Date();
+          voiceDateObject = new Date(),
+          voiceTime = voiceDateObject.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
 
     let oldChannel,
         newChannel,
-        time = date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}),
-        timeServerUser = `${time} ${serverName} - ${member.username}`,
+        timeServerUser = `${voiceTime} ${serverName} - ${member.username}`,
         message,
         userWasHere = false,
         userIsHere = false;
@@ -254,13 +259,14 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
 //----------------------------------------------------------------------------------
 
 setInterval(async function() {
+  cronJobCount++;
 
   //send demotivationalMessage with a change
   if(settings.smileSender && (Math.random()*100) < settings.randomSmileChance){
     let randomTime = Math.floor(Math.random()*60) * 60 * 1000; //between 0 and 59 minutes
     setTimeout( async () => {
       console.log("Demotivational message sent (cronjob)");
-      await client.channels.fetch("533264087917002756")
+      await client.channels.fetch("786143893158756365")
         .then(channel => channel.send(demotivationalMessage()))
         .catch(console.error);
     }, randomTime);
