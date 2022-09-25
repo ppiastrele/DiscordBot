@@ -18,6 +18,7 @@ const client = new Client({
 
 let masterAdmin;
 let settings = {
+  debug: 0,
   loginAlert: 1,
   logoutAlert: 1,
   moveChannelAlert: 0,
@@ -41,7 +42,7 @@ const servers = {
   }
 }
 
-const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !upTime\n• !settings\n• !servers\n• !cronCount\n• !updateSettings-[setting]-[value]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\tnoobTalk: [0,1]\n\t\tsmileSender: [0,1]\n\t\trandomSmileChance: [0,1,2...99,100]";
+const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !upTime\n• !settings\n• !servers\n• !cronCount\n• !updateSettings-[setting]-[value]\n\t\tdebug: [0,1]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\tnoobTalk: [0,1]\n\t\tsmileSender: [0,1]\n\t\trandomSmileChance: [0,1,2...99,100]";
 
 const helpText = "Vingador - Help Prompt\n\n• !smile\n• !upTime";
 
@@ -116,7 +117,7 @@ function upTime(){
   const upTimeNow = new Date();
   const timeDiffMilliseconds = upTimeNow.getTime() - botStartDate.getTime();
 
-  return `Since: ${botStartDate.toLocaleDateString('pt-BR', botTimeZone)} | ${botStartDate.toLocaleTimeString(botTimeFormat, botTimeZone)}\nUp time: ${msToDays(timeDiffMilliseconds)}`;
+  return `Since: ${botStartDate.toLocaleDateString('pt-BR', {timeZone: botTimeZone})} | ${botStartDate.toLocaleTimeString(botTimeFormat, {timeZone: botTimeZone})}\nUp time: ${msToDays(timeDiffMilliseconds)}`;
 }
 
 //----------------------------------------------------------------------------------
@@ -126,8 +127,6 @@ function upTime(){
 client.on('ready', async () => {
   console.log(`Bot started at ${botStartDate.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`);
   masterAdmin = await client.users.fetch(process.env.ADMIN_ID);
-
-  console.log("time test",botStartDate.toTimeString());
 });
 
 //----------------------------------------------------------------------------------
@@ -138,12 +137,13 @@ client.on("messageCreate", async (message) => {
 
   if(!message?.author.bot){
 
+    const author = message?.author || {};
     const messageContent = message?.content || "";
     const server = servers[message.guildId];
     
     //noobs talk
     if(settings.noobTalk){
-      if(message?.author.username === "Faitas" || message?.author.username === "B Frozen"){
+      if(author.username === "Faitas" || author.username === "B Frozen"){
         message.reply('noob')
           .catch(console.error);
       }
@@ -159,7 +159,7 @@ client.on("messageCreate", async (message) => {
 
     if(messageContent === "!smile"){
       sendChannelMessage(message, demotivationalMessage(), true);
-      console.log(`Demotivational message sent by ${message?.author.username}`);
+      console.log(`Demotivational message sent by ${author.username}`);
       if(server?.name){
         server.demotivationalCounter = 0;
       }
@@ -180,7 +180,7 @@ client.on("messageCreate", async (message) => {
     }
     
     //admin helper
-    if(message?.author.id === masterAdmin.id){
+    if(author.id === masterAdmin.id){
       const adminMessage = messageContent.split("-");
 
       if(messageContent === "!adminHelp"){
@@ -209,6 +209,10 @@ client.on("messageCreate", async (message) => {
         const response = updateSettings(adminMessage[1], newValue);
         masterAdmin.send(`Setting changed - ${adminMessage[1]} from ${response.oldValue} to ${response.newValue}`);
       }
+    }
+
+    if(settings.debug){
+      console.log(`Debug text message: User: ${author.username} ${author.id} | content ${messageContent} | channel ${message.channelId} | server ${message.guildId}`);
     }
   }
 });
@@ -250,7 +254,7 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
       message = `${timeServerUser} logged out`;
     }
     
-    if(message && member === masterAdmin){
+    if(message && (member !== masterAdmin || settings.debug)){
       masterAdmin.send(message);
       console.log(message);
     }
