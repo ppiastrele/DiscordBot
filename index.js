@@ -211,7 +211,8 @@ client.on("messageCreate", async (message) => {
           }
         }
         const response = updateSettings(adminMessage[1], newValue);
-        masterAdmin.send(`Setting changed - ${adminMessage[1]} from ${response.oldValue} to ${response.newValue}`);
+        masterAdmin.send(`Setting changed - ${adminMessage[1]} from ${response.oldValue} to ${response.newValue}`)
+          .catch(console.error);
       }
     }
 
@@ -259,7 +260,8 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
     }
     
     if(message && (member.id !== masterAdmin.id || settings.debug)){
-      masterAdmin.send(message);
+      masterAdmin.send(message)
+        .catch(console.error);;
       console.log(message);
     }
 
