@@ -20,7 +20,7 @@ let masterAdmin;
 let settings = {
   debug: 0,
   loginAlert: 1,
-  logoutAlert: 1,
+  logoutAlert: 0,
   moveChannelAlert: 0,
   noobTalk: 0,
   randomSmileSender: 1,
@@ -31,18 +31,8 @@ const cronjobInterval = 60 * 60 * 1000;  //in milliseconds
 const botTimeZone = "America/Sao_Paulo";
 const botTimeFormat = "pt-BR";
 const botStartDate = new Date();
-const servers = {
-  "521352924513828885": {
-    name: "Primatas",
-    demotivationalCounter: 0
-  },
-  "533264087917002752": {
-    name: "xNeC",
-    demotivationalCounter: 0
-  }
-}
 
-const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !upTime\n• !settings\n• !servers\n• !cronCount\n• !updateSettings-[setting]-[value]\n\t\tdebug: [0,1]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\tnoobTalk: [0,1]\n\t\trandomSmileSender: [0,1]\n\t\trandomSmileChance: [0,1,2...99,100]";
+const adminHelpText = "Vingador - Help Prompt\n\n• !smile\n• !upTime\n• !settings\n• !cronCount\n• !updateSettings-[setting]-[value]\n\t\tdebug: [0,1]\n\t\tloginAlert: [0,1]\n\t\tlogoutAlert: [0,1]\n\t\tmoveChannelAlert: [0,1]\n\t\tnoobTalk: [0,1]\n\t\trandomSmileSender: [0,1]\n\t\trandomSmileChance: [0,1,2...99,100]";
 
 const helpText = "Vingador - Help Prompt\n\n• !smile\n• !upTime";
 
@@ -102,17 +92,6 @@ function getSettings(){
   return response;
 }
 
-function getServers(){
-  let response = "";
-  
-  for (const key in servers) {
-    if(response != "") response += "\n";
-    response += `${key} -> ${servers[key].name} | ${servers[key].demotivationalCounter}`; 
-  }
-
-  return response;
-}
-
 function upTime(){
   const upTimeNow = new Date();
   const timeDiffMilliseconds = upTimeNow.getTime() - botStartDate.getTime();
@@ -139,7 +118,6 @@ client.on("messageCreate", async (message) => {
 
     const author = message?.author || {};
     const messageContent = message?.content || "";
-    const server = servers[message.guildId];
     
     //noobs talk
     if(settings.noobTalk){
@@ -163,22 +141,13 @@ client.on("messageCreate", async (message) => {
 
     if(messageContent === "!smile"){
       sendChannelMessage(message, demotivationalMessage(), true);
-      console.log(`Demotivational message sent by ${author.username}`);
-      if(server?.name){
-        server.demotivationalCounter = 0;
-      }
+      console.log(`Demotivational message sent by ${author.username} on ${message.guild.name}`);
     }else{
       //random demotivational message sender
       if(settings.randomSmileSender ){
-        //name property is used to ensure server is one of the allowed ones
-        if(server?.name){
-          if(Math.random() > 0.85 || server.demotivationalCounter >= 6){
-            console.log("Demotivational message sent (message chance)");
-            sendChannelMessage(message, demotivationalMessage(), false);
-            server.demotivationalCounter = 0;
-          }else{
-            server.demotivationalCounter++;
-          }
+        if(Math.random() > 0.85){
+          console.log("Demotivational message sent (message chance) on",message.guild.name);
+          sendChannelMessage(message, demotivationalMessage(), false);
         }
       }
     }
@@ -193,10 +162,6 @@ client.on("messageCreate", async (message) => {
 
       if(messageContent === "!settings"){
         sendChannelMessage(message, getSettings(), false);
-      }
-
-      if(messageContent === "!servers"){
-        sendChannelMessage(message, getServers(), false);
       }
 
       if(messageContent === "!cronCount"){
@@ -227,17 +192,21 @@ client.on("messageCreate", async (message) => {
 //----------------------------------------------------------------------------------
 
 client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
+  
+  const serverChannels = await oldMemberState.guild.channels.fetch();
+  const logChannel = serverChannels.find(ch => ch.name === "log-vingador");
 
-  if(servers[oldMemberState?.guild.id]){
+  //verify if the server has a channel named log-vingador
+  if(logChannel?.id){
     
-    const serverName = servers[oldMemberState?.guild.id].name,
+    const serverName = oldMemberState.guild.name,
           member = await client.users.fetch(oldMemberState?.id),
           voiceDateObject = new Date(),
           voiceTime = voiceDateObject.toLocaleTimeString(botTimeFormat, {timeZone: botTimeZone, hour: '2-digit', minute: '2-digit'});
 
     let oldChannel,
         newChannel,
-        timeServerUser = `${voiceTime} ${serverName} - ${member.username}`,
+        timeUser = `${voiceTime} - ${member.username}`,
         message,
         userWasHere = false,
         userIsHere = false;
@@ -252,17 +221,17 @@ client.on("voiceStateUpdate", async (oldMemberState, newMemberState) => {
     }
 
     if(settings.moveChannelAlert && userWasHere && userIsHere){
-      message = `${timeServerUser} moved from ${oldChannel?.name} to ${newChannel?.name}`;
+      message = `${timeUser} moved from ${oldChannel?.name} to ${newChannel?.name}`;
     }else if(settings.loginAlert && userIsHere && !userWasHere){
-      message = `${timeServerUser} logged in to ${newChannel?.name}`;
+      message = `${timeUser} logged in to ${newChannel?.name}`;
     }else if(settings.logoutAlert && !userIsHere && userWasHere){
-      message = `${timeServerUser} logged out`;
+      message = `${timeUser} logged out`;
     }
     
-    if(message && (member.id !== masterAdmin.id || settings.debug)){
-      masterAdmin.send(message)
-        .catch(console.error);;
-      console.log(message);
+    if(message){
+      logChannel.send(message)
+        .catch(console.error);
+      console.log(serverName,message);
     }
 
   }
