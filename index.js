@@ -106,6 +106,9 @@ function upTime(){
 client.on('ready', async () => {
   console.log(`Bot started at ${botStartDate.toLocaleTimeString(botTimeFormat, {timeZone: botTimeZone, hour: '2-digit', minute: '2-digit'})}`);
   masterAdmin = await client.users.fetch(process.env.ADMIN_ID);
+
+  masterAdmin.send(`Vingador is Online`)
+    .catch(console.error);
 });
 
 //----------------------------------------------------------------------------------
