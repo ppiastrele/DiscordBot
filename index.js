@@ -23,7 +23,7 @@ let settings = {
   logoutAlert: 0,
   moveChannelAlert: 0,
   noobTalk: 0,
-  randomSmileSender: 1,
+  randomSmileSender: 0,
   randomSmileChance: 5,
 }
 let cronJobCount = 0;
